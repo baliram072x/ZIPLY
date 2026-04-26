@@ -8,7 +8,10 @@ export const api = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    if (!res.ok) throw new Error('API Error');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `API Error: ${res.status}`);
+    }
     return res.json();
   },
 

@@ -11,6 +11,7 @@ export type CartItem = {
 };
 
 export type OrderStatus =
+  | "Pending"
   | "Placed"
   | "Accepted"
   | "Preparing"
@@ -19,14 +20,15 @@ export type OrderStatus =
 
 export type Order = {
   id: string;
-  shopId: string;
-  shopName: string;
+  user_id: string;
   items: CartItem[];
   total: number;
-  etaMin: number;
-  placedAt: number;
   status: OrderStatus;
-  address: string;
+  shop_id: string;
+  shop_name: string;
+  delivery_address: string;
+  created_at: string;
+  etaMin?: number;
 };
 
 export type VendorAccount = {
@@ -52,9 +54,10 @@ type Store = {
   checkSession: () => Promise<void>;
   
   // Orders
-  orders: any[];
+  orders: Order[];
   fetchOrders: () => Promise<void>;
-  placeOrder: (orderData: any) => Promise<void>;
+  placeOrder: (orderData: any) => Promise<Order>;
+  advanceOrder: (id: string) => void;
 
   cart: CartItem[];
   addToCart: (product: Product, shop: Shop) => void;
@@ -63,10 +66,7 @@ type Store = {
   clearCart: () => void;
   cartCount: () => number;
   cartTotal: () => number;
-  orders: Order[];
-  placeOrder: (etaMin: number, address: string) => Order | null;
-  advanceOrder: (id: string) => void;
-  setOrderStatus: (id: string, status: OrderStatus) => void;
+
   // Shops management
   shops: Shop[];
   addShop: (shop: Shop) => void;
@@ -93,7 +93,7 @@ export const useStore = create<Store>()(
       loginUser: (user, token) => {
         if (token) localStorage.setItem('ziply_auth_token', token);
         set({ user, location: user.address });
-        get().fetchOrders(); // Fetch orders on login
+        get().fetchOrders();
       },
       logoutUser: () => {
         localStorage.removeItem('ziply_auth_token');
@@ -105,7 +105,7 @@ export const useStore = create<Store>()(
         try {
           const { user } = await api.get('/auth/me');
           set({ user, location: user.address });
-          get().fetchOrders(); // Fetch orders on session restore
+          get().fetchOrders();
         } catch (e) {
           localStorage.removeItem('ziply_auth_token');
           set({ user: null, orders: [] });
@@ -126,17 +126,33 @@ export const useStore = create<Store>()(
           const newOrder = await api.post('/orders', orderData);
           set((state) => ({ 
             orders: [newOrder, ...state.orders],
-            cart: [] // Clear cart on success
+            cart: [] 
           }));
           return newOrder;
         } catch (e) {
           throw e;
         }
       },
+      advanceOrder: (id) => {
+        const flow: OrderStatus[] = [
+          "Pending",
+          "Placed",
+          "Accepted",
+          "Preparing",
+          "Out for Delivery",
+          "Delivered",
+        ];
+        set((state) => ({
+          orders: state.orders.map((o) => {
+            if (o.id !== id) return o;
+            const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
+            return { ...o, status: next };
+          }),
+        }));
+      },
       cart: [],
       addToCart: (product, shop) =>
         set((state) => {
-          // single-shop cart for simplicity
           const differentShop = state.cart.find((c) => c.shopId !== shop.id);
           const base = differentShop ? [] : state.cart;
           const existing = base.find((c) => c.product.id === product.id);
@@ -165,44 +181,7 @@ export const useStore = create<Store>()(
       clearCart: () => set({ cart: [] }),
       cartCount: () => get().cart.reduce((s, c) => s + c.qty, 0),
       cartTotal: () => get().cart.reduce((s, c) => s + c.qty * c.product.price, 0),
-      orders: [],
-      placeOrder: (etaMin, address) => {
-        const cart = get().cart;
-        if (!cart.length) return null;
-        const order: Order = {
-          id: "ORD" + Math.random().toString(36).slice(2, 7).toUpperCase(),
-          shopId: cart[0].shopId,
-          shopName: cart[0].shopName,
-          items: cart,
-          total: get().cartTotal(),
-          etaMin,
-          placedAt: Date.now(),
-          status: "Placed",
-          address,
-        };
-        set((state) => ({ orders: [order, ...state.orders], cart: [] }));
-        return order;
-      },
-      advanceOrder: (id) => {
-        const flow: OrderStatus[] = [
-          "Placed",
-          "Accepted",
-          "Preparing",
-          "Out for Delivery",
-          "Delivered",
-        ];
-        set((state) => ({
-          orders: state.orders.map((o) => {
-            if (o.id !== id) return o;
-            const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
-            return { ...o, status: next };
-          }),
-        }));
-      },
-      setOrderStatus: (id, status) =>
-        set((state) => ({
-          orders: state.orders.map((o) => (o.id === id ? { ...o, status } : o)),
-        })),
+      
       shops: SHOPS,
       addShop: (shop) => set((state) => ({ shops: [...state.shops, shop] })),
       deleteShop: (shopId) =>

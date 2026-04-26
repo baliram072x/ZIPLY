@@ -42,10 +42,10 @@ const Track = () => {
                 Order {order.id}
               </div>
               <h1 className="mt-1 font-display text-3xl font-extrabold">
-                {done ? "Delivered 🎉" : `Arriving in ~${order.etaMin} min`}
+                {done ? "Delivered 🎉" : `Arriving in ~${order.etaMin || 15} min`}
               </h1>
               <div className="mt-1 text-sm text-muted-foreground">
-                From <span className="font-semibold text-foreground">{order.shopName}</span>
+                From <span className="font-semibold text-foreground">{order.shop_name}</span>
               </div>
             </div>
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-hero text-3xl text-primary-foreground shadow-pop">

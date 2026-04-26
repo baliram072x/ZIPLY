@@ -22,7 +22,7 @@ const Cart = () => {
   const delivery = total > 0 ? (total >= 199 ? 0 : 19) : 0;
   const grand = total + delivery;
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!user) {
       navigate("/auth");
       toast.info("Please login to place your order", {
@@ -31,12 +31,22 @@ const Cart = () => {
       return;
     }
 
-    const order = placeOrder(eta, user.address);
-    if (order) {
+    try {
+      const orderData = {
+        items: cart,
+        total: grand,
+        shop_id: cart[0].shopId,
+        shop_name: cart[0].shopName,
+        delivery_address: user.address
+      };
+
+      const order = await placeOrder(orderData);
       toast.success("Order placed successfully!", { 
         description: `Delivering to ${user.name} in ${eta} min` 
       });
       navigate(`/track/${order.id}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to place order");
     }
   };
 

@@ -12,6 +12,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'ziply-super-secret-key';
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${new Date().toISOString()} ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+  });
+  next();
+});
+
 // Initialize Database
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -145,8 +155,10 @@ app.post('/api/orders', authenticateToken, (req, res) => {
 // 2. Get user orders
 app.get('/api/orders', authenticateToken, (req, res) => {
   const user_id = req.user.id;
+  console.log(`Fetching orders for user: ${user_id}`);
   try {
     const orders = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(user_id);
+    console.log(`Found ${orders.length} orders`);
     // Parse items JSON string back to object
     const parsedOrders = orders.map(o => ({
       ...o,
@@ -154,7 +166,8 @@ app.get('/api/orders', authenticateToken, (req, res) => {
     }));
     res.json(parsedOrders);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
   }
 });
 

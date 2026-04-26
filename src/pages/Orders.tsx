@@ -30,7 +30,7 @@ const Orders = () => {
                 <div className="text-xs font-semibold uppercase text-muted-foreground">
                   {o.id}
                 </div>
-                <div className="font-display text-lg font-bold">{o.shopName}</div>
+                <div className="font-display text-lg font-bold">{o.shop_name}</div>
                 <div className="text-sm text-muted-foreground">
                   {o.items.length} item{o.items.length === 1 ? "" : "s"} · ₹{o.total}
                 </div>
@@ -47,7 +47,7 @@ const Orders = () => {
                   {o.status}
                 </span>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  {new Date(o.placedAt).toLocaleString()}
+                  {new Date(o.created_at).toLocaleString()}
                 </div>
               </div>
             </Link>
