@@ -1,0 +1,23 @@
+Registering with phone: 8978399744
+Reg: {
+  user: {
+    id: 'USRIQ2L5',
+    name: 'Jhon',
+    phone: '8978399744',
+    address: 'Test address',
+    lat: 0,
+    lng: 0
+  },
+  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTUklRMkw1IiwicGhvbmUiOiI4OTc4Mzk5NzQ0IiwiaWF0IjoxNzc3MjU5ODk3fQ.MoGPlBb85r5UjE_d6it1e8LLyhkUSjo_H_fvwK4-3-4'
+}
+Order Result: {
+  id: 'ORDU7Q5FX',
+  user_id: 'USRIQ2L5',
+  items: [],
+  total: 109,
+  status: 'Pending',
+  shop_id: 'sharma-kirana',
+  shop_name: 'Sharma',
+  delivery_address: 'Pune',
+  created_at: '2026-04-27T03:18:17.356Z'
+}

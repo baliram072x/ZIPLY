@@ -47,8 +47,8 @@ const Cart = () => {
       clearCart();
       toast.success("Order placed successfully!");
       navigate(`/track?id=${newOrder.id}`);
-    } catch (error) {
-      toast.error("Failed to place order. Please try again.");
+    } catch (error: any) {
+      toast.error(`Failed: ${error.message || error.error || JSON.stringify(error)}`);
     }
   };
 

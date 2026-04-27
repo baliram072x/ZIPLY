@@ -11,14 +11,17 @@ const VendorLogin = () => {
   const loginVendor = useStore((s) => s.loginVendor);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = loginVendor(email, password);
-    if (success) {
+    try {
+      const { api } = await import("@/lib/api");
+      const data = await api.post('/vendor/login', { email, password });
+      useStore.setState({ currentVendor: data.user });
+      localStorage.setItem('ziply_auth_token', data.token);
       toast.success("Login successful!");
       navigate("/vendor/dashboard");
-    } else {
-      toast.error("Invalid email or password");
+    } catch (err: any) {
+      toast.error(err.error || "Invalid email or password");
     }
   };
 

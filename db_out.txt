@@ -1,0 +1,227 @@
+Users: [
+  {
+    id: 'USRU06YE',
+    phone: '9527955039',
+    name: 'Baliram Rathod ',
+    address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 16:29:35',
+    lat: null,
+    lng: null
+  },
+  {
+    id: 'USR9459A',
+    phone: '1234567889',
+    name: 'Baliram rathod ',
+    address: 'Kesnand - Wadegaon road,  Kesnand,  Haveli Subdistrict',
+    created_at: '2026-04-26 23:06:26',
+    lat: null,
+    lng: null
+  },
+  {
+    id: 'USR654SF',
+    phone: '1234567890',
+    name: 'jhon',
+    address: 'Haveli Subdistrict,  Pune District,  Maharashtra',
+    created_at: '2026-04-26 23:29:23',
+    lat: null,
+    lng: null
+  },
+  {
+    id: 'USRSMX57',
+    phone: '8933592404',
+    name: 'Jhon',
+    address: 'Test address',
+    created_at: '2026-04-27 03:17:20',
+    lat: 0,
+    lng: 0
+  },
+  {
+    id: 'USRXRK5L',
+    phone: '8924964125',
+    name: 'Jhon',
+    address: 'Test address',
+    created_at: '2026-04-27 03:17:57',
+    lat: 0,
+    lng: 0
+  },
+  {
+    id: 'USRIQ2L5',
+    phone: '8978399744',
+    name: 'Jhon',
+    address: 'Test address',
+    created_at: '2026-04-27 03:18:17',
+    lat: 0,
+    lng: 0
+  }
+]
+Orders: [
+  {
+    id: 'ORDX2S0JT',
+    user_id: 'USRU06YE',
+    items: '[{"product":{"id":"wp-5","name":"Band-Aid Strip","price":40,"unit":"10 pcs","category":"Medicine","emoji":"🩹","popular":false,"stock":24},"qty":1,"shopId":"wellness-pharmacy","shopName":"Wellness Pharmacy"},{"product":{"id":"wp-6","name":"Digital Thermometer","price":220,"unit":"1 unit","category":"Medicine","emoji":"🌡️","popular":false,"stock":24},"qty":1,"shopId":"wellness-pharmacy","shopName":"Wellness Pharmacy"}]',
+    total: 260,
+    status: 'Cancelled',
+    shop_id: 'wellness-pharmacy',
+    shop_name: 'Wellness Pharmacy',
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 17:07:37',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORD0G4FVW',
+    user_id: 'USRU06YE',
+    items: '[{"product":{"id":"new-534i","name":"condom","price":90,"unit":"1 pc","category":"Personal Care","emoji":"📦","stock":10},"qty":1,"shopId":"sharma-kirana","shopName":"Sharma Kirana Store"}]',
+    total: 109,
+    status: 'Cancelled',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma Kirana Store',
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 17:07:51',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDVDGDSS',
+    user_id: 'USRU06YE',
+    items: `[{"product":{"id":"bb-4","name":"Garlic Bread","price":95,"unit":"1 pack","category":"Bakery","emoji":"🥖","popular":false,"stock":24},"qty":1,"shopId":"browns-bakery","shopName":"Brown's Hot Bakery"}]`,
+    total: 114,
+    status: 'Cancelled',
+    shop_id: 'browns-bakery',
+    shop_name: "Brown's Hot Bakery",
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 17:08:38',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDQ59892',
+    user_id: 'USRU06YE',
+    items: `[{"product":{"id":"bb-3","name":"Chocolate Muffin","price":80,"unit":"1 pc","category":"Bakery","emoji":"🧁","popular":false,"stock":24},"qty":1,"shopId":"browns-bakery","shopName":"Brown's Hot Bakery"}]`,
+    total: 99,
+    status: 'Pending',
+    shop_id: 'browns-bakery',
+    shop_name: "Brown's Hot Bakery",
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 17:11:04',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDGG2950',
+    user_id: 'USRU06YE',
+    items: '[{"product":{"id":"new-534i","name":"condom","price":90,"unit":"1 pc","category":"Personal Care","emoji":"📦","stock":10},"qty":1,"shopId":"sharma-kirana","shopName":"Sharma Kirana Store"}]',
+    total: 109,
+    status: 'Cancelled',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma Kirana Store',
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 17:11:33',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDK1V5F9',
+    user_id: 'USRU06YE',
+    items: '[{"product":{"id":"sk-5","name":"Parle-G Biscuits","price":10,"unit":"1 pack","category":"Snacks","emoji":"🍪","popular":false,"stock":24},"qty":1,"shopId":"sharma-kirana","shopName":"Sharma Kirana Store"}]',
+    total: 29,
+    status: 'Cancelled',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma Kirana Store',
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 17:12:32',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDOO52TA',
+    user_id: 'USRU06YE',
+    items: '[{"product":{"id":"mgiawoz6s","name":"Butter","price":55,"unit":"1 pc","emoji":"🧈","category":"Dairy","image":"https://source.unsplash.com/600x400/?butter","popular":false},"qty":1,"shopId":"sharma-kirana","shopName":"Sharma Kirana Store"}]',
+    total: 74,
+    status: 'Delivered',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma Kirana Store',
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-26 23:02:30',
+    delivery_boy_name: 'Amit Kumar',
+    delivery_boy_phone: '8765432109'
+  },
+  {
+    id: 'ORD5KJI3L',
+    user_id: 'USRU06YE',
+    items: '[{"product":{"id":"cwmakewdl","name":"Cheese","price":90,"unit":"1 pc","emoji":"🧀","category":"Dairy","image":"https://source.unsplash.com/600x400/?cheese","popular":false},"qty":1,"shopId":"sharma-kirana","shopName":"Sharma Kirana Store"}]',
+    total: 109,
+    status: 'Delivered',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma Kirana Store',
+    delivery_address: 'Rathod Niwas, Taleranwadi ,kesnand wagholi pune -412207',
+    created_at: '2026-04-27 00:10:02',
+    delivery_boy_name: 'Ramesh Delivery',
+    delivery_boy_phone: '9999999999'
+  },
+  {
+    id: 'O2',
+    user_id: 'USR654SF',
+    items: '[]',
+    total: 10,
+    status: 'Pending',
+    shop_id: 's',
+    shop_name: 's',
+    delivery_address: 'a',
+    created_at: '2026-04-27 00:25:30',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDP2D0GT',
+    user_id: 'USR654SF',
+    items: '[{"product":{"id":"p1","name":"Item","price":10,"unit":"pc","emoji":"📦","category":"Grocery","popular":false},"qty":1}]',
+    total: 10,
+    status: 'Delivered',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma Kirana Store',
+    delivery_address: 'Home',
+    created_at: '2026-04-27 00:29:09',
+    delivery_boy_name: 'Ramesh Delivery',
+    delivery_boy_phone: '9999999999'
+  },
+  {
+    id: 'ORD1ZR5JN',
+    user_id: 'USRSMX57',
+    items: '[]',
+    total: 109,
+    status: 'Pending',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma',
+    delivery_address: 'Pune',
+    created_at: '2026-04-27 03:17:20',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDJ0Y7H4',
+    user_id: 'USRXRK5L',
+    items: '[]',
+    total: 109,
+    status: 'Pending',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma',
+    delivery_address: 'Pune',
+    created_at: '2026-04-27 03:17:57',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  },
+  {
+    id: 'ORDU7Q5FX',
+    user_id: 'USRIQ2L5',
+    items: '[]',
+    total: 109,
+    status: 'Pending',
+    shop_id: 'sharma-kirana',
+    shop_name: 'Sharma',
+    delivery_address: 'Pune',
+    created_at: '2026-04-27 03:18:17',
+    delivery_boy_name: null,
+    delivery_boy_phone: null
+  }
+]

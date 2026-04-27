@@ -249,10 +249,43 @@ app.post('/api/auth/register', (req, res) => {
 
 // 4. Get current user profile (session check)
 app.get('/api/auth/me', authenticateToken, (req, res) => {
+  if (req.user.vendor) {
+    return res.json({ user: req.user });
+  }
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json({ user });
 });
+
+// 5. Vendor Login
+app.post('/api/vendor/login', (req, res) => {
+  const { email, password } = req.body;
+  const vendorAccounts = [
+    { email: "sharma@ziply.com", password: "123", shopId: "sharma-kirana" },
+    { email: "apollo@ziply.com", password: "123", shopId: "apollo-pharmacy" },
+  ];
+  
+  const acc = vendorAccounts.find(a => a.email === email && a.password === password);
+  if (acc) {
+    const token = jwt.sign({ id: acc.shopId, email: acc.email, vendor: true, shopId: acc.shopId }, JWT_SECRET);
+    return res.json({ user: acc, token });
+  }
+  res.status(401).json({ error: 'Invalid credentials' });
+});
+
+// Middleware to verify vendor
+const authenticateVendor = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Forbidden' });
+    if (!user.vendor) return res.status(403).json({ error: 'Not a vendor' });
+    req.user = user;
+    next();
+  });
+};
 
 // --- ORDER ENDPOINTS ---
 
@@ -269,7 +302,7 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     // Resiliency: ensure the shop and user exist in the DB to avoid FOREIGN KEY errors from stale localStorage caches
     try {
       db.prepare('INSERT OR IGNORE INTO shops (id, name, emoji, color, tagline, rating, distanceKm, lat, lng, products) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(shop_id, shop_name || 'Shop', '🛒', 'from-gray-500 to-gray-400', 'Local shop', 4.5, 1.0, 0, 0, '[]');
-      db.prepare('INSERT OR IGNORE INTO users (id, phone, name, address, lat, lng) VALUES (?, ?, ?, ?, ?, ?)').run(user_id, '9999999999', req.user.name || 'User', delivery_address, 0, 0);
+      db.prepare('INSERT OR IGNORE INTO users (id, phone, name, address, lat, lng) VALUES (?, ?, ?, ?, ?, ?)').run(user_id, user_id, req.user.name || 'User', delivery_address || 'No address', 0, 0);
     } catch (ignore) {}
 
     const stmt = db.prepare(`
@@ -317,7 +350,7 @@ app.get('/api/orders', authenticateToken, (req, res) => {
 });
 
 // 3. Get vendor orders (NEW)
-app.get('/api/vendor/orders', (req, res) => {
+app.get('/api/vendor/orders', authenticateVendor, (req, res) => {
   const { shop_id } = req.query;
   if (!shop_id) return res.status(400).json({ error: 'shop_id required' });
 
