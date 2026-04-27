@@ -2,22 +2,42 @@ import { Header } from "@/components/Header";
 import { ShopCard } from "@/components/ShopCard";
 import { CATEGORIES, bestShop } from "@/data/seed";
 import { useStore } from "@/store/useStore";
-import { motion } from "framer-motion";
-import { Search, Zap, ArrowRight, Timer } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Zap, ArrowRight, Timer, Bike, ChevronRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 const Index = () => {
   const location = useStore((s) => s.location);
+  const coords = useStore((s) => s.coords);
   const shops = useStore((s) => s.shops);
+  const orders = useStore((s) => s.orders);
+  const fetchOrders = useStore((s) => s.fetchOrders);
+  const fetchShops = useStore((s) => s.fetchShops);
   const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  
+  useEffect(() => {
+    fetchOrders();
+    fetchShops();
+    const interval = setInterval(() => {
+      fetchOrders();
+      fetchShops();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [fetchOrders, fetchShops]);
+
+  const activeOrder = useMemo(() => 
+    orders.find(o => o.status !== "Delivered"),
+    [orders]
+  );
   
   const allProducts = useMemo(() => 
     shops.flatMap((s) => s.products.map((p) => ({ ...p, shopId: s.id, shopName: s.name }))),
     [shops]
   );
 
-  const best = useMemo(() => bestShop(shops), [shops]);
+  const best = useMemo(() => bestShop(shops, coords || undefined), [shops, coords]);
   
   const results = useMemo(() => {
     if (!query.trim()) return [];
@@ -25,7 +45,12 @@ const Index = () => {
     return allProducts.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 8);
   }, [query, allProducts]);
 
-  const popular = useMemo(() => allProducts.filter((p) => p.popular).slice(0, 6), [allProducts]);
+  const displayProducts = useMemo(() => {
+    if (activeCategory) {
+      return allProducts.filter((p) => p.category === activeCategory);
+    }
+    return allProducts.filter((p) => p.popular).slice(0, 6);
+  }, [allProducts, activeCategory]);
 
   return (
     <div className="min-h-screen">
@@ -82,7 +107,13 @@ const Index = () => {
                       onClick={() => setQuery("")}
                       className="flex items-center gap-3 border-b border-border/60 px-4 py-3 transition last:border-b-0 hover:bg-muted"
                     >
-                      <span className="text-2xl">{r.emoji}</span>
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {r.image ? (
+                          <img src={r.image} alt={r.name} crossOrigin="anonymous" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="grid h-full w-full place-items-center text-xl">{r.emoji}</div>
+                        )}
+                      </div>
                       <div className="flex-1">
                         <div className="text-sm font-semibold">{r.name}</div>
                         <div className="text-xs text-muted-foreground">
@@ -119,7 +150,15 @@ const Index = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="cursor-pointer rounded-2xl border border-border bg-gradient-card p-4 text-center transition hover:-translate-y-1 hover:shadow-pop"
+              onClick={() => {
+                setActiveCategory(activeCategory === c.name ? null : c.name);
+                document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className={`cursor-pointer rounded-2xl border p-4 text-center transition hover:-translate-y-1 hover:shadow-pop ${
+                activeCategory === c.name 
+                  ? "border-primary bg-primary/10 shadow-soft" 
+                  : "border-border bg-gradient-card"
+              }`}
             >
               <div className="mb-1 text-3xl">{c.emoji}</div>
               <div className="text-xs font-semibold">{c.name}</div>
@@ -140,26 +179,46 @@ const Index = () => {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...shops]
-            .sort((a, b) => a.distanceKm - b.distanceKm)
+            .sort((a, b) => {
+               // Dynamic sorting if we have coords, though getDistance is private to seed.ts, let's just sort by bestShop approximation
+               // We will update seed.ts to export getDistance
+               return a.distanceKm - b.distanceKm
+             })
             .map((s) => (
-              <ShopCard key={s.id} shop={s} best={s.id === best.id} />
+              <ShopCard key={s.id} shop={s} best={s.id === best.id} userCoords={coords || undefined} />
             ))}
         </div>
       </section>
 
-      {/* Popular */}
-      <section className="container py-10">
-        <h2 className="mb-5 font-display text-2xl font-bold">
-          Popular near you 🔥
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-          {popular.map((p) => (
+      {/* Products */}
+      <section id="products-section" className="container py-10">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="font-display text-2xl font-bold">
+            {activeCategory ? `${activeCategory}` : "Popular near you 🔥"}
+          </h2>
+          {activeCategory && (
+            <button 
+              onClick={() => setActiveCategory(null)}
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Clear filter
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 mt-4">
+          {displayProducts.map((p) => (
             <Link
               key={p.id}
               to={`/shop-view/${p.shopId}`}
-              className="rounded-2xl border border-border bg-card p-3 text-center transition hover:-translate-y-1 hover:shadow-pop"
+              className="group rounded-2xl border border-border bg-card p-3 text-center transition hover:-translate-y-1 hover:shadow-pop"
             >
-              <div className="mb-1 text-4xl">{p.emoji}</div>
+              <div className="relative mb-2 aspect-square overflow-hidden rounded-xl bg-gradient-card">
+                {p.image ? (
+                  <img src={p.image} alt={p.name} crossOrigin="anonymous" className="h-full w-full object-cover transition group-hover:scale-110" />
+                ) : (
+                  <div className="grid h-full w-full place-items-center text-4xl">{p.emoji}</div>
+                )}
+              </div>
               <div className="text-xs font-semibold leading-tight">{p.name}</div>
               <div className="mt-1 text-sm font-bold text-primary">₹{p.price}</div>
             </Link>
@@ -170,6 +229,41 @@ const Index = () => {
       <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
         Ziply · Hyperlocal delivery prototype · Built for demo
       </footer>
+
+      {/* Active Order Tracking Bar */}
+      <AnimatePresence>
+        {activeOrder && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-4 left-4 right-4 z-50"
+          >
+            <Link
+              to={`/track/${activeOrder.id}`}
+              className="flex items-center justify-between overflow-hidden rounded-2xl bg-gradient-hero p-4 text-primary-foreground shadow-pop-lg"
+            >
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 backdrop-blur">
+                  <Bike className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider opacity-80">
+                    Active Order · {activeOrder.status}
+                  </div>
+                  <div className="font-display font-extrabold">
+                    {activeOrder.shop_name}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold backdrop-blur">
+                <Clock className="h-3.5 w-3.5" />
+                Track <ChevronRight className="h-3.5 w-3.5" />
+              </div>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

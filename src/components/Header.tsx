@@ -68,7 +68,13 @@ export const Header = () => {
                     onClick={() => setQuery("")}
                     className="flex items-center gap-3 border-b border-border/60 px-4 py-3 transition last:border-b-0 hover:bg-muted"
                   >
-                    <span className="text-xl">{r.emoji}</span>
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      {r.image ? (
+                        <img src={r.image} alt={r.name} crossOrigin="anonymous" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="grid h-full w-full place-items-center text-xl">{r.emoji}</div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <div className="text-sm font-semibold">{r.name}</div>
                       <div className="text-xs text-muted-foreground">

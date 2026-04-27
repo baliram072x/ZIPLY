@@ -8,28 +8,31 @@ import { toast } from "sonner";
 
 const Cart = () => {
   const cart = useStore((s) => s.cart);
+  const shops = useStore((s) => s.shops);
   const add = useStore((s) => s.addToCart);
   const dec = useStore((s) => s.decrement);
   const remove = useStore((s) => s.removeFromCart);
   const total = useStore((s) => s.cartTotal());
   const placeOrder = useStore((s) => s.placeOrder);
   const location = useStore((s) => s.location);
+  const coords = useStore((s) => s.coords);
   const user = useStore((s) => s.user);
+  const clearCart = useStore((s) => s.clearCart);
   const navigate = useNavigate();
 
-  const shop = cart[0] ? SHOPS.find((s) => s.id === cart[0].shopId) : null;
-  const eta = shop ? etaMinutes(shop) : 10;
+  const shop = cart[0] ? shops.find((s) => s.id === cart[0].shopId) : null;
+  const eta = shop ? etaMinutes(shop, coords || undefined) : 10;
   const delivery = total > 0 ? (total >= 199 ? 0 : 19) : 0;
   const grand = total + delivery;
 
   const handlePlaceOrder = async () => {
     if (!user) {
+      toast.error("Please login to place an order");
       navigate("/auth");
-      toast.info("Please login to place your order", {
-        icon: <AlertCircle className="h-4 w-4" />
-      });
       return;
     }
+
+    if (cart.length === 0) return;
 
     try {
       const orderData = {
@@ -37,16 +40,15 @@ const Cart = () => {
         total: grand,
         shop_id: cart[0].shopId,
         shop_name: cart[0].shopName,
-        delivery_address: user.address
+        delivery_address: user.address || "No address provided"
       };
 
-      const order = await placeOrder(orderData);
-      toast.success("Order placed successfully!", { 
-        description: `Delivering to ${user.name} in ${eta} min` 
-      });
-      navigate(`/track/${order.id}`);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to place order");
+      const newOrder = await placeOrder(orderData);
+      clearCart();
+      toast.success("Order placed successfully!");
+      navigate(`/track?id=${newOrder.id}`);
+    } catch (error) {
+      toast.error("Failed to place order. Please try again.");
     }
   };
 
@@ -90,8 +92,14 @@ const Cart = () => {
                 key={c.product.id}
                 className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft"
               >
-                <div className="grid h-14 w-14 place-items-center rounded-xl bg-gradient-card text-3xl">
-                  {c.product.emoji}
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gradient-card">
+                  {c.product.image ? (
+                    <img src={c.product.image} alt={c.product.name} crossOrigin="anonymous" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-3xl">
+                      {c.product.emoji}
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold">{c.product.name}</div>

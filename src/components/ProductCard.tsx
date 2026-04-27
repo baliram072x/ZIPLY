@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Product, Shop } from "@/data/seed";
 import { useStore } from "@/store/useStore";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export const ProductCard = ({ product, shop }: { product: Product; shop: Shop }) => {
+  const [imgError, setImgError] = useState(false);
   const cart = useStore((s) => s.cart);
   const add = useStore((s) => s.addToCart);
   const dec = useStore((s) => s.decrement);
@@ -13,8 +15,20 @@ export const ProductCard = ({ product, shop }: { product: Product; shop: Shop })
 
   return (
     <div className="group flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft transition hover:border-primary/40 hover:shadow-pop">
-      <div className="mb-3 grid aspect-square place-items-center rounded-xl bg-gradient-card text-5xl">
-        {product.emoji}
+      <div className="relative mb-3 aspect-square overflow-hidden rounded-xl bg-gradient-card">
+        {product.image && !imgError ? (
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            crossOrigin="anonymous"
+            onError={() => setImgError(true)}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-110" 
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-5xl">
+            {product.emoji}
+          </div>
+        )}
       </div>
       <div className="text-xs uppercase tracking-wide text-muted-foreground">
         {product.unit}

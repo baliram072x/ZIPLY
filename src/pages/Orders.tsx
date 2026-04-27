@@ -2,9 +2,17 @@ import { Header } from "@/components/Header";
 import { useStore } from "@/store/useStore";
 import { Link } from "react-router-dom";
 import { Clock } from "lucide-react";
+import { useEffect } from "react";
 
 const Orders = () => {
   const orders = useStore((s) => s.orders);
+  const fetchOrders = useStore((s) => s.fetchOrders);
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
   return (
     <div className="min-h-screen">
       <Header />

@@ -11,7 +11,11 @@ import Track from "./pages/Track";
 import Orders from "./pages/Orders";
 import ShopOwner from "./pages/ShopOwner";
 import Admin from "./pages/Admin";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminUsers from "./pages/AdminUsers";
 import VendorLogin from "./pages/VendorLogin";
+import DeliveryLogin from "./pages/DeliveryLogin";
+import DeliveryDashboard from "./pages/DeliveryDashboard";
 import Auth from "./pages/Auth";
 import { useStore } from "@/store/useStore";
 import { useEffect } from "react";
@@ -20,10 +24,12 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const checkSession = useStore((s) => s.checkSession);
+  const fetchShops = useStore((s) => s.fetchShops);
 
   useEffect(() => {
     checkSession();
-  }, [checkSession]);
+    fetchShops();
+  }, [checkSession, fetchShops]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -37,7 +43,12 @@ const App = () => {
             <Route path="/shop-view/:id" element={<ShopView />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/track" element={<Track />} />
             <Route path="/track/:id" element={<Track />} />
+            
+            {/* Delivery Routes */}
+            <Route path="/delivery/login" element={<DeliveryLogin />} />
+            <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
             
             {/* Vendor Routes */}
             <Route path="/vendor/login" element={<VendorLogin />} />
@@ -45,6 +56,8 @@ const App = () => {
             
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<Admin />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             
             {/* Redirect old routes */}
             <Route path="/shop" element={<Navigate to="/vendor/login" replace />} />

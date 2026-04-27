@@ -7,6 +7,7 @@ export type Product = {
   unit: string;
   category: Category;
   emoji: string;
+  image?: string;
   popular?: boolean;
   stock: number;
 };
@@ -20,7 +21,10 @@ export type Shop = {
   distanceKm: number;
   prepMinutes: number;
   emoji: string;
+  image?: string;
   color: string; // tailwind gradient classes
+  lat?: number;
+  lng?: number;
   products: Product[];
 };
 
@@ -31,9 +35,10 @@ const p = (
   unit: string,
   category: Category,
   emoji: string,
+  image?: string,
   popular = false,
   stock = 24,
-): Product => ({ id, name, price, unit, category, emoji, popular, stock });
+): Product => ({ id, name, price, unit, category, emoji, image, popular, stock });
 
 export const SHOPS: Shop[] = [
   {
@@ -43,6 +48,8 @@ export const SHOPS: Shop[] = [
     type: "Kirana",
     rating: 4.7,
     distanceKm: 0.4,
+    lat: 12.9358,
+    lng: 77.6232,
     prepMinutes: 3,
     emoji: "🛒",
     color: "from-pink-500 to-rose-400",
@@ -64,6 +71,8 @@ export const SHOPS: Shop[] = [
     type: "Medical",
     rating: 4.9,
     distanceKm: 0.9,
+    lat: 12.9338,
+    lng: 77.6212,
     prepMinutes: 5,
     emoji: "💊",
     color: "from-emerald-500 to-teal-400",
@@ -83,6 +92,8 @@ export const SHOPS: Shop[] = [
     type: "Dairy",
     rating: 4.6,
     distanceKm: 1.4,
+    lat: 12.9328,
+    lng: 77.6252,
     prepMinutes: 4,
     emoji: "🥛",
     color: "from-sky-500 to-blue-400",
@@ -101,6 +112,8 @@ export const SHOPS: Shop[] = [
     type: "Bakery",
     rating: 4.8,
     distanceKm: 0.7,
+    lat: 12.9368,
+    lng: 77.6252,
     prepMinutes: 6,
     emoji: "🥐",
     color: "from-amber-500 to-orange-400",
@@ -122,16 +135,39 @@ export const CATEGORIES: { name: Category; emoji: string }[] = [
   { name: "Personal Care", emoji: "🧴" },
 ];
 
+export function getDistance(s: Shop, userCoords?: { lat: number, lng: number }) {
+  if (userCoords && s.lat && s.lng) {
+    const R = 6371; // km
+    const dLat = (userCoords.lat - s.lat) * Math.PI / 180;
+    const dLon = (userCoords.lng - s.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(s.lat * Math.PI / 180) * Math.cos(userCoords.lat * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return parseFloat((R * c).toFixed(1));
+  }
+  return s.distanceKm;
+}
+
 /** Smart "Best Shop" pick: weighted score on distance + prep time + rating */
-export function bestShop(shops: Shop[] = SHOPS): Shop {
+export function bestShop(shops: Shop[] = SHOPS, userCoords?: { lat: number, lng: number }): Shop {
   const score = (s: Shop) =>
-    s.distanceKm * 6 + s.prepMinutes * 1.2 - s.rating * 2;
+    getDistance(s, userCoords) * 6 + s.prepMinutes * 1.2 - s.rating * 2;
+    
   return [...shops].sort((a, b) => score(a) - score(b))[0];
 }
 
-export function etaMinutes(shop: Shop): number {
+export function etaMinutes(shop: Shop, userCoords?: { lat: number, lng: number }): number {
+  let dist = shop.distanceKm;
+  if (userCoords && shop.lat && shop.lng) {
+    const R = 6371;
+    const dLat = (userCoords.lat - shop.lat) * Math.PI / 180;
+    const dLon = (userCoords.lng - shop.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(shop.lat * Math.PI / 180) * Math.cos(userCoords.lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
   // 1 km ≈ 2.5 min on a scooter + prep
-  return Math.round(shop.prepMinutes + shop.distanceKm * 2.5);
+  return Math.round(shop.prepMinutes + dist * 2.5);
 }
 
 export const ALL_PRODUCTS = SHOPS.flatMap((s) =>

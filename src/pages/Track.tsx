@@ -1,12 +1,12 @@
 import { Header } from "@/components/Header";
 import { useStore, type OrderStatus } from "@/store/useStore";
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useSearchParams } from "react-router-dom";
 import { Check, Package, ChefHat, Bike, Home, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useMemo } from "react";
 
 const STEPS: { key: OrderStatus; label: string; icon: typeof Check }[] = [
-  { key: "Placed", label: "Order placed", icon: Package },
+  { key: "Pending", label: "Order placed", icon: Package },
   { key: "Accepted", label: "Shop accepted", icon: Check },
   { key: "Preparing", label: "Preparing items", icon: ChefHat },
   { key: "Out for Delivery", label: "Out for delivery", icon: Bike },
@@ -14,17 +14,18 @@ const STEPS: { key: OrderStatus; label: string; icon: typeof Check }[] = [
 ];
 
 const Track = () => {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = useParams().id || searchParams.get("id");
   const orders = useStore((s) => s.orders);
   const order = useMemo(() => orders.find((o) => o.id === id), [orders, id]);
-  const advance = useStore((s) => s.advanceOrder);
+  const fetchOrders = useStore((s) => s.fetchOrders);
 
-  // auto-progress every ~6s for live demo feel
+  // Poll for updates every 5 seconds
   useEffect(() => {
-    if (!order || order.status === "Delivered") return;
-    const t = setTimeout(() => advance(order.id), 6000);
-    return () => clearTimeout(t);
-  }, [order, advance]);
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
 
   if (!order) return <Navigate to="/orders" replace />;
   const activeIdx = STEPS.findIndex((s) => s.key === order.status);
@@ -70,24 +71,40 @@ const Track = () => {
               const current = i === activeIdx && !done;
               const Icon = step.icon;
               return (
-                <li key={step.key} className="flex items-center gap-4">
-                  <div
-                    className={`relative grid h-11 w-11 place-items-center rounded-full transition ${
-                      reached
-                        ? "bg-gradient-hero text-primary-foreground shadow-pop"
-                        : "bg-muted text-muted-foreground"
-                    } ${current ? "animate-pulse-glow" : ""}`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className={`font-semibold ${reached ? "" : "text-muted-foreground"}`}>
-                      {step.label}
+                <li key={step.key} className="flex flex-col">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`relative grid h-11 w-11 place-items-center rounded-full transition ${
+                        reached
+                          ? "bg-gradient-hero text-primary-foreground shadow-pop"
+                          : "bg-muted text-muted-foreground"
+                      } ${current ? "animate-pulse-glow" : ""}`}
+                    >
+                      <Icon className="h-5 w-5" />
                     </div>
-                    {current && (
-                      <div className="text-xs text-primary">In progress…</div>
-                    )}
+                    <div className="flex-1">
+                      <div className={`font-semibold ${reached ? "" : "text-muted-foreground"}`}>
+                        {step.label}
+                      </div>
+                      {current && (
+                        <div className="text-xs text-primary">In progress…</div>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Delivery Boy Details shown under "Out for delivery" step */}
+                   {step.key === "Out for Delivery" && reached && order.delivery_boy_name && (
+                     <div className="ml-14 mt-2 flex items-center gap-3 rounded-2xl bg-amber-50 p-3 text-amber-900 shadow-sm">
+                      <div className="grid h-10 w-10 place-items-center rounded-full bg-white text-xl">
+                        🛵
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-wider opacity-60">Your Delivery Partner</div>
+                        <div className="font-bold">{order.delivery_boy_name}</div>
+                        <div className="text-sm font-medium">{order.delivery_boy_phone}</div>
+                      </div>
+                    </div>
+                  )}
                 </li>
               );
             })}

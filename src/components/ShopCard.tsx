@@ -2,10 +2,11 @@ import { Link } from "react-router-dom";
 import { Star, Clock, MapPin, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Shop } from "@/data/seed";
-import { etaMinutes } from "@/data/seed";
+import { etaMinutes, getDistance } from "@/data/seed";
 
-export const ShopCard = ({ shop, best }: { shop: Shop; best?: boolean }) => {
-  const eta = etaMinutes(shop);
+export const ShopCard = ({ shop, best, userCoords }: { shop: Shop; best?: boolean; userCoords?: { lat: number, lng: number } }) => {
+  const eta = etaMinutes(shop, userCoords);
+  const distance = getDistance(shop, userCoords);
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -39,7 +40,7 @@ export const ShopCard = ({ shop, best }: { shop: Shop; best?: boolean }) => {
             <Clock className="h-3.5 w-3.5" /> {eta} min
           </span>
           <span className="flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5" /> {shop.distanceKm} km
+            <MapPin className="h-3.5 w-3.5" /> {distance} km
           </span>
         </div>
       </Link>

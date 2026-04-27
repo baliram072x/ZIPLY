@@ -5,6 +5,7 @@ import { User, MapPin, ArrowRight, Zap, ChevronLeft, Loader2 } from "lucide-reac
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
+import { LocationPicker } from "@/components/LocationPicker";
 
 export default function Auth() {
   const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
@@ -12,10 +13,26 @@ export default function Auth() {
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [lat, setLat] = useState<number | undefined>();
+  const [lng, setLng] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   
   const loginUser = useStore((s) => s.loginUser);
   const navigate = useNavigate();
+
+  const startResendTimer = () => {
+    setResendTimer(30);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +44,29 @@ export default function Auth() {
     setLoading(true);
     try {
       const data = await api.post('/auth/send-otp', { phone });
-      toast.success(`OTP sent to ${phone} (Demo: ${data.otp})`);
+      if (data.demo) {
+        toast.success(`OTP sent to ${phone} (Demo: ${data.otp})`);
+      } else {
+        toast.success(`OTP sent to ${phone}`);
+      }
       setStep("otp");
+      startResendTimer();
     } catch (err: any) {
       toast.error(err.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    setLoading(true);
+    try {
+      const data = await api.post('/auth/send-otp', { phone });
+      toast.success("OTP resent successfully");
+      startResendTimer();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend OTP");
     } finally {
       setLoading(false);
     }
@@ -62,14 +98,14 @@ export default function Auth() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !address) {
-      toast.error("Please fill all details");
+    if (!name || !address || !lat || !lng) {
+      toast.error("Please fill all details and pick location");
       return;
     }
 
     setLoading(true);
     try {
-      const data = await api.post('/auth/register', { name, phone, address });
+      const data = await api.post('/auth/register', { name, phone, address, lat, lng });
       loginUser(data.user, data.token);
       toast.success(`Welcome, ${name}!`);
       navigate(-1);
@@ -170,14 +206,25 @@ export default function Auth() {
                   {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : "Verify & Continue"}
                   {!loading && <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />}
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => setStep("phone")}
-                  disabled={loading}
-                  className="w-full text-sm font-bold text-muted-foreground hover:text-foreground transition disabled:opacity-50"
-                >
-                  Change phone number
-                </button>
+                
+                <div className="flex flex-col gap-3">
+                  <button 
+                    type="button" 
+                    onClick={handleResendOtp}
+                    disabled={loading || resendTimer > 0}
+                    className="w-full text-sm font-bold text-primary hover:text-primary/80 transition disabled:text-muted-foreground"
+                  >
+                    {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setStep("phone")}
+                    disabled={loading}
+                    className="w-full text-sm font-bold text-muted-foreground hover:text-foreground transition disabled:opacity-50"
+                  >
+                    Change phone number
+                  </button>
+                </div>
               </form>
             ) : (
               <form onSubmit={handleProfileSubmit} className="space-y-6">
@@ -198,17 +245,23 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase text-muted-foreground px-1 tracking-widest">Delivery Address</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
-                    <input
-                      required
-                      disabled={loading}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      className="w-full rounded-2xl border border-border bg-card pl-14 pr-5 py-5 font-display text-lg font-bold outline-none focus:ring-4 focus:ring-primary/10 transition-all disabled:opacity-50"
-                      placeholder="Flat, Floor, Building Name"
+                  {address && lat && lng ? (
+                     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
+                       <div>
+                         <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1">Selected:</div>
+                         <div className="font-medium">{address}</div>
+                       </div>
+                       <button type="button" onClick={() => { setAddress(''); setLat(undefined); setLng(undefined); }} className="text-primary text-sm font-bold opacity-80 hover:opacity-100">Change</button>
+                     </div>
+                  ) : (
+                    <LocationPicker 
+                       onLocationSelect={(addr, l, lg) => {
+                         setAddress(addr);
+                         setLat(l);
+                         setLng(lg);
+                       }} 
                     />
-                  </div>
+                  )}
                 </div>
                 <button
                   type="submit"

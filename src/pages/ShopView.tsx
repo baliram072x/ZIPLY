@@ -1,7 +1,7 @@
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
-import { etaMinutes, type Category } from "@/data/seed";
+import { etaMinutes, getDistance, type Category } from "@/data/seed";
 import { ArrowLeft, Clock, MapPin, Star } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useStore } from "@/store/useStore";
@@ -9,6 +9,7 @@ import { useStore } from "@/store/useStore";
 const ShopView = () => {
   const { id } = useParams();
   const shops = useStore((s) => s.shops);
+  const coords = useStore((s) => s.coords);
   const shop = shops.find((s) => s.id === id);
   const cats = useMemo(() => {
     if (!shop) return [] as Category[];
@@ -17,7 +18,8 @@ const ShopView = () => {
   const [active, setActive] = useState<Category | "All">("All");
 
   if (!shop) return <Navigate to="/" replace />;
-  const eta = etaMinutes(shop);
+  const eta = etaMinutes(shop, coords || undefined);
+  const distance = getDistance(shop, coords || undefined);
   const filtered =
     active === "All" ? shop.products : shop.products.filter((p) => p.category === active);
 
@@ -46,7 +48,7 @@ const ShopView = () => {
                   <Clock className="h-4 w-4" /> {eta} min
                 </span>
                 <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" /> {shop.distanceKm} km away
+                  <MapPin className="h-4 w-4" /> {distance} km away
                 </span>
               </div>
             </div>
@@ -82,10 +84,10 @@ const ShopView = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} shop={shop} />
-          ))}
-        </div>
+            {filtered.map((p) => (
+              <ProductCard key={p.id} product={p} shop={shop} />
+            ))}
+          </div>
       </div>
     </div>
   );
